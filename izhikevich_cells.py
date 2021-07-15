@@ -39,6 +39,20 @@
 # izhikevich_cells.py using dot notation (hint: izh.plot...)
 #
 # Make sure to run your file to test it.
+#
+# For each cell (including the super class, regular spiking cell), you
+# can play around with the stimVal argument to find a level of current
+# input that makes your cell spike but not 'go crazy' with too much spiking.
+#
+# If you do the bonus exercises, create additional files for each bonus cell
+# you create, such as: fast_spiking_cell.py, low_threshold_spiking_cell.py,
+# and late_spiking_cell.py. For these cells, you'll notice the equations are
+# structured differently. You will need to override the super class's
+# simulation method with one unique to that subclass, so that you can
+# customize the equations inside the for loop. The parameter vb can be set
+# to -55 and the variable vd will need to be handled in the same way as the
+# variable v. For more explanation, see the Bonus PDF.
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -54,7 +68,7 @@ class izhCell():
         self.k=0.7
         self.a=0.03
         self.b=-2
-        self.c=-56
+        self.c=-50 # updated, typo in original code
         self.d=100
         self.vpeak=35
         self.stimVal = stimVal
@@ -66,10 +80,12 @@ class izhCell():
         self.n=int(np.round(self.T/self.tau))
         
         # Set up the stimulation
-        self.I = np.concatenate((np.zeros((1,int(0.1*self.n))),self.stimVal*np.ones((1,int(0.01*self.n))),self.stimVal*.1*np.ones((1,int(0.89*self.n)))), axis=1)
+#        self.I = np.concatenate((np.zeros((1,int(0.1*self.n))),self.stimVal*np.ones((1,int(0.01*self.n))),self.stimVal*.1*np.ones((1,int(0.89*self.n)))), axis=1)
+        self.I = np.concatenate((np.zeros((1,int(0.1*self.n))), 
+                 self.stimVal*np.ones((1,int(0.9*self.n)))), axis=1)
 
         # Set up placeholders for my outputs from the simulation              
-        self.v=self.vr*np.zeros((1,self.n))
+        self.v=self.vr*np.ones((1,self.n))
         self.u=0*self.v
         
     def __repr__(self):
@@ -77,9 +93,9 @@ class izhCell():
 
     def simulate(self):    
         # Run the simulation
-        print("vpeak = ", self.vpeak)
+        # print("vpeak = ", self.vpeak)
         for i in range(1,self.n-1):
-            self.v[0,i+1]+=self.v[0,i]+self.tau*(self.k*(self.v[0,i]-self.vr)*(self.v[0,i]-self.vt)-self.u[0,i]+self.I[0,i])/self.C
+            self.v[0,i+1]=self.v[0,i]+self.tau*(self.k*(self.v[0,i]-self.vr)*(self.v[0,i]-self.vt)-self.u[0,i]+self.I[0,i])/self.C
             self.u[0,i+1]=self.u[0,i]+self.tau*self.a*(self.b*(self.v[0,i]-self.vr)-self.u[0,i])
             
             if self.v[0,i+1]>=self.vpeak:
@@ -102,7 +118,7 @@ def plotMyData(somecell, upLim = 1000):
     plt.show()
 
 def createCell():
-    myCell = izhCell(stimVal=4000)        
+    myCell = izhCell(stimVal=200)        
     myCell.simulate()
     plotMyData(myCell)
     
